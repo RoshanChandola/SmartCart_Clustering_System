@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartCart - Customer Clustering System</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Plotly.js CDN for 3D PCA plot -->
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+    <!-- Custom Style -->
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <i class="fa-solid fa-cart-shopping brand-icon"></i>
+                <h2>Smart<span>Cart</span></h2>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-tab="dashboard">
+                    <i class="fa-solid fa-chart-pie"></i> Dashboard Overview
+                </a>
+                <a href="#" class="nav-item" data-tab="explorer">
+                    <i class="fa-solid fa-users-gear"></i> Segment Explorer
+                </a>
+                <a href="#" class="nav-item" data-tab="profiler">
+                    <i class="fa-solid fa-user-tag"></i> Customer Profiler
+                </a>
+                <a href="#" class="nav-item" data-tab="batch">
+                    <i class="fa-solid fa-file-csv"></i> Batch Segmenter
+                </a>
+                <a href="#" class="nav-item" data-tab="settings">
+                    <i class="fa-solid fa-sliders"></i> Model & Pipeline
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="avatar"><i class="fa-solid fa-user-tie"></i></div>
+                    <div class="details">
+                        <h4>Roshan Chandola</h4>
+                        <p>ML Project Owner</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Body Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="main-header">
+                <div class="header-title">
+                    <h1 id="page-title">Dashboard Overview</h1>
+                    <p id="page-subtitle">Real-time unsupervised customer behavior segmentation</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-secondary btn-icon" id="quick-retrain-btn" title="Retrain Model Pipeline">
+                        <i class="fa-solid fa-arrows-rotate"></i>
+                    </button>
+                    <div class="server-status">
+                        <span class="status-indicator online"></span>
+                        <span class="status-text">Pipeline Active</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Loading Spinner Overlay -->
+            <div id="global-loader" class="loader-overlay hidden">
+                <div class="loader-spinner"></div>
+                <p id="loader-text">Loading insights...</p>
+            </div>
+
+            <!-- VIEW 1: DASHBOARD OVERVIEW -->
+            <section id="tab-dashboard" class="tab-view active">
+                <!-- Overview Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon purple">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Total Customers</h3>
+                            <h2 id="metric-total-customers">-</h2>
+                            <p class="positive"><i class="fa-solid fa-circle-check"></i> Cleaned dataset</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon cyan">
+                            <i class="fa-solid fa-wallet"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Average Income</h3>
+                            <h2 id="metric-avg-income">-</h2>
+                            <p class="info-text">Excludes outlier entries</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <i class="fa-solid fa-basket-shopping"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Average Spending</h3>
+                            <h2 id="metric-avg-spending">-</h2>
+                            <p class="positive"><i class="fa-solid fa-arrow-trend-up"></i> Lifetime value</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon red">
+                            <i class="fa-solid fa-bullhorn"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Campaign Response</h3>
+                            <h2 id="metric-response-rate">-</h2>
+                            <p class="positive"><i class="fa-solid fa-thumbs-up"></i> Positive conversions</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Layout Grid -->
+                <div class="charts-grid-3d">
+                    <!-- 3D PCA plot container -->
+                    <div class="chart-card pca-card">
+                        <div class="card-header">
+                            <div class="header-text">
+                                <h3>3D PCA Customer Clusters</h3>
+                                <p>Unsupervised groupings mapped in 3D principal component space</p>
+                            </div>
+                            <div class="header-tools">
+                                <span class="badge">Plotly 3D</span>
+                            </div>
+                        </div>
+                        <div class="card-body plot-body-3d">
+                            <div id="pca-3d-scatter" class="plotly-canvas"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="charts-grid-2d">
+                    <div class="chart-card">
+                        <div class="card-header">
+                            <h3>Segment Distribution</h3>
+                            <p>Proportion of customer database in each group</p>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="chart-distribution"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <div class="card-header">
+                            <h3>Income vs Total Spending</h3>
+                            <p>Customer purchasing power distribution</p>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="chart-income-spend"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW 2: SEGMENT EXPLORER -->
+            <section id="tab-explorer" class="tab-view">
+                <div class="section-intro">
+                    <h2>Explore Customer Segments</h2>
+                    <p>Unsupervised clustering identified 4 customer segments. Click each segment to inspect statistics and marketing strategies.</p>
+                </div>
+                
+                <div class="segments-grid">
+                    <!-- Cluster 0 -->
+                    <div class="segment-card" data-cluster="0" style="--accent: #9b5de5;">
+                        <div class="segment-header">
+                            <span class="segment-icon">👨‍👩‍👧‍👦</span>
+                            <div class="segment-title">
+                                <h3>Partnered Budget Families</h3>
+                                <p>Segment 0</p>
+                            </div>
+                        </div>
+                        <div class="segment-summary-metric">
+                            <div class="metric-mini">
+                                <span class="label">Average Income</span>
+                                <span class="val">$39,680</span>
+                            </div>
+                            <div class="metric-mini">
+                                <span class="label">Average Spending</span>
+                                <span class="val">$222</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Cluster 1 -->
+                    <div class="segment-card" data-cluster="1" style="--accent: #00f5d4;">
+                        <div class="segment-header">
+                            <span class="segment-icon">💎</span>
+                            <div class="segment-title">
+                                <h3>Partnered VIP Spenders</h3>
+                                <p>Segment 1</p>
+                            </div>
+                        </div>
+                        <div class="segment-summary-metric">
+                            <div class="metric-mini">
+                                <span class="label">Average Income</span>
+                                <span class="val">$72,808</span>
+                            </div>
+                            <div class="metric-mini">
+                                <span class="label">Average Spending</span>
+                                <span class="val">$1,236</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Cluster 2 -->
+                    <div class="segment-card" data-cluster="2" style="--accent: #ff007f;">
+                        <div class="segment-header">
+                            <span class="segment-icon">🛒</span>
+                            <div class="segment-title">
+                                <h3>Single Budget Parents</h3>
+                                <p>Segment 2</p>
+                            </div>
+                        </div>
+                        <div class="segment-summary-metric">
+                            <div class="metric-mini">
+                                <span class="label">Average Income</span>
+                                <span class="val">$36,960</span>
+                            </div>
+                            <div class="metric-mini">
+                                <span class="label">Average Spending</span>
+                                <span class="val">$166</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Cluster 3 -->
+                    <div class="segment-card" data-cluster="3" style="--accent: #00bbf9;">
+                        <div class="segment-header">
+                            <span class="segment-icon">🎯</span>
+                            <div class="segment-title">
+                                <h3>Responsive Single VIPs</h3>
+                                <p>Segment 3</p>
+                            </div>
+                        </div>
+                        <div class="segment-summary-metric">
+                            <div class="metric-mini">
+                                <span class="label">Average Income</span>
+                                <span class="val">$70,722</span>
+                            </div>
+                            <div class="metric-mini">
+                                <span class="label">Average Spending</span>
+                                <span class="val">$1,190</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Segment Detail View -->
+                <div class="explorer-detail-container glass-card" id="segment-detail-view">
+                    <div class="detail-header">
+                        <span id="detail-icon" class="detail-icon-badge">👨‍👩‍👧‍👦</span>
+                        <div>
+                            <h2 id="detail-name">Partnered Budget Families</h2>
+                            <p id="detail-description-short">Middle-income couples or families with children.</p>
+                        </div>
+                        <span class="badge" id="detail-size-badge">905 Customers (40.4%)</span>
+                    </div>
+                    
+                    <div class="detail-body-grid">
+                        <div class="detail-stats-column">
+                            <h4>Segment Benchmarks</h4>
+                            <div class="benchmark-list">
+                                <div class="benchmark-item">
+                                    <span class="label"><i class="fa-solid fa-wallet"></i> Income Range</span>
+                                    <span class="val" id="detail-income">Moderate (~$39,680)</span>
+                                </div>
+                                <div class="benchmark-item">
+                                    <span class="label"><i class="fa-solid fa-cart-shopping"></i> Total Spending</span>
+                                    <span class="val" id="detail-spending">Low/Moderate (~$222)</span>
+                                </div>
+                                <div class="benchmark-item">
+                                    <span class="label"><i class="fa-solid fa-children"></i> Household Kids</span>
+                                    <span class="val" id="detail-children">~1.24 children</span>
+                                </div>
+                                <div class="benchmark-item">
+                                    <span class="label"><i class="fa-solid fa-house-user"></i> Household Structure</span>
+                                    <span class="val" id="detail-living">Partnered</span>
+                                </div>
+                                <div class="benchmark-item">
+                                    <span class="label"><i class="fa-solid fa-clock"></i> Last Online Active</span>
+                                    <span class="val" id="detail-recency">~48.9 days (Recency)</span>
+                                </div>
+                                <div class="benchmark-item">
+                                    <span class="label"><i class="fa-solid fa-graduation-cap"></i> Majority Education</span>
+                                    <span class="val" id="detail-education">Graduation</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="detail-strategy-column">
+                            <h4>Targeted Marketing Strategies</h4>
+                            <ul class="strategy-list" id="detail-strategies-list">
+                                <li>Strategy 1</li>
+                                <li>Strategy 2</li>
+                                <li>Strategy 3</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW 3: CUSTOMER PROFILER -->
+            <section id="tab-profiler" class="tab-view">
+                <div class="profiler-layout-grid">
+                    <!-- Form side -->
+                    <div class="glass-card form-card">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-user-plus"></i> Customer Demographic & Purchase Profiler</h3>
+                            <p>Enter customer details to run real-time cluster classification via the pipeline</p>
+                        </div>
+                        
+                        <form id="profiler-form" class="profiler-form">
+                            <!-- Group 1: Demographics -->
+                            <div class="form-section">
+                                <h4><i class="fa-solid fa-id-card"></i> Demographics</h4>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="p-year-birth">Year of Birth</label>
+                                        <input type="number" id="p-year-birth" value="1982" min="1930" max="2015" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="p-income">Annual Income ($)</label>
+                                        <input type="number" id="p-income" value="55000" min="0" required>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="p-education">Education Level</label>
+                                        <select id="p-education">
+                                            <option value="Graduation" selected>Graduation (Bachelors)</option>
+                                            <option value="PostGraduate">PostGraduate (Master/PhD)</option>
+                                            <option value="UnderGraduate">UnderGraduate (Basic/2n Cycle)</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="p-marital">Marital Status</label>
+                                        <select id="p-marital">
+                                            <option value="Married" selected>Married</option>
+                                            <option value="Together">Together (Co-habitating)</option>
+                                            <option value="Single">Single</option>
+                                            <option value="Divorced">Divorced</option>
+                                            <option value="Widow">Widow</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="p-kidhome">Kids at Home</label>
+                                        <input type="number" id="p-kidhome" value="1" min="0" max="3">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="p-teenhome">Teens at Home</label>
+                                        <input type="number" id="p-teenhome" value="0" min="0" max="3">
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="p-dt-customer">Customer Enrollment Date</label>
+                                        <input type="date" id="p-dt-customer" value="2013-05-18" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="p-recency">Recency (Days since last buy)</label>
+                                        <input type="number" id="p-recency" value="45" min="0" max="365" required>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Group 2: Spending Breakdown -->
+                            <div class="form-section">
+                                <h4><i class="fa-solid fa-dollar-sign"></i> Spending Breakdown (Last 2 Years)</h4>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="p-wines">Wines ($)</label>
+                                        <input type="number" id="p-wines" value="150" min="0">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="p-fruits">Fruits ($)</label>
+                                        <input type="number" id="p-fruits" value="20" min="0">
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="p-meats">Meat Products ($)</label>
+                                        <input type="number" id="p-meats" value="100" min="0">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="p-fish">Fish Products ($)</label>
+                                        <input type="number" id="p-fish" value="30" min="0">
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="p-sweets">Sweets ($)</label>
+                                        <input type="number" id="p-sweets" value="15" min="0">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="p-gold">Gold Products ($)</label>
+                                        <input type="number" id="p-gold" value="25" min="0">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Group 3: Shopping Channels -->
+                            <div class="form-section">
+                                <h4><i class="fa-solid fa-store"></i> Purchase Habits & Channels</h4>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="p-web-purch">Web Purchases Count</label>
+                                        <input type="number" id="p-web-purch" value="4" min="0">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="p-store-purch">Store Purchases Count</label>
+                                        <input type="number" id="p-store-purch" value="5" min="0">
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="p-catalog-purch">Catalog Purchases Count</label>
+                                        <input type="number" id="p-catalog-purch" value="1" min="0">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="p-deals-purch">Discount Deals Bought</label>
+                                        <input type="number" id="p-deals-purch" value="2" min="0">
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="p-web-visits">Monthly Website Visits</label>
+                                        <input type="number" id="p-web-visits" value="6" min="0">
+                                    </div>
+                                    <div class="form-group flex-row">
+                                        <div class="checkbox-group">
+                                            <input type="checkbox" id="p-complain" value="1">
+                                            <label for="p-complain">Has Filed Complain</label>
+                                        </div>
+                                        <div class="checkbox-group">
+                                            <input type="checkbox" id="p-response" value="1">
+                                            <label for="p-response">Accepted Marketing Promo</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary btn-full-width">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> Predict Customer Segment
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Result side -->
+                    <div class="result-column">
+                        <div class="glass-card result-placeholder" id="profiler-placeholder-card">
+                            <i class="fa-solid fa-user-gear placeholder-icon"></i>
+                            <h3>Segment Prediction Awaiting</h3>
+                            <p>Fill out the profile on the left and click predict to see behavioral clustering assignments and tailored recommendations.</p>
+                        </div>
+                        
+                        <div class="glass-card result-card hidden" id="profiler-result-card">
+                            <div class="result-header">
+                                <span class="result-badge" id="result-segment-icon">👨‍👩‍👧‍👦</span>
+                                <div class="result-title">
+                                    <span class="label">Assigned Cluster</span>
+                                    <h2 id="result-segment-name">Partnered Budget Families</h2>
+                                </div>
+                            </div>
+                            
+                            <div class="result-section">
+                                <h4>Persona Profile</h4>
+                                <p id="result-segment-description" class="result-desc"></p>
+                            </div>
+
+                            <div class="result-section">
+                                <h4>Metrics vs Cluster Averages</h4>
+                                <div class="chart-comparison-container">
+                                    <canvas id="chart-comparison-radar"></canvas>
+                                </div>
+                            </div>
+
+                            <div class="result-section">
+                                <h4>Marketing Strategy Recommendation</h4>
+                                <ul class="strategy-list highlight" id="result-strategies">
+                                    <!-- Rendered dynamically -->
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW 4: BATCH SEGMENTER -->
+            <section id="tab-batch" class="tab-view">
+                <div class="batch-layout">
+                    <div class="glass-card upload-card">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-file-arrow-up"></i> Bulk Customer Segmentation</h3>
+                            <p>Upload a CSV file containing customer lists to segment them using our ML pipeline</p>
+                        </div>
+                        
+                        <div class="upload-dropzone" id="csv-dropzone">
+                            <i class="fa-solid fa-cloud-arrow-up drop-icon"></i>
+                            <h3>Drag & Drop CSV File Here</h3>
+                            <p>or click to browse from your device</p>
+                            <input type="file" id="csv-file-input" accept=".csv" class="hidden">
+                        </div>
+
+                        <div class="upload-progress-container hidden" id="upload-progress-container">
+                            <div class="file-info-bar">
+                                <span class="file-name" id="selected-file-name"><i class="fa-solid fa-file-csv"></i> customers.csv</span>
+                                <span class="file-size" id="selected-file-size">186 KB</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 100%;"></div>
+                            </div>
+                            <button class="btn btn-primary" id="process-csv-btn">
+                                <i class="fa-solid fa-play"></i> Segment Customers
+                            </button>
+                        </div>
+                        
+                        <div class="csv-sample-info">
+                            <p><i class="fa-solid fa-circle-info"></i> CSV must match the dataset columns: <code>Year_Birth</code>, <code>Education</code>, <code>Marital_Status</code>, <code>Income</code>, <code>Kidhome</code>, <code>Teenhome</code>, etc.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Batch Results view (hidden by default) -->
+                    <div class="glass-card batch-results-card hidden" id="batch-results-view">
+                        <div class="card-header border-bottom">
+                            <div class="header-text">
+                                <h3>Batch Processing Completed</h3>
+                                <p id="batch-summary-text">Successfully processed 0 customer rows</p>
+                            </div>
+                            <div class="header-tools">
+                                <button class="btn btn-success" id="download-results-btn">
+                                    <i class="fa-solid fa-download"></i> Download Segmented CSV
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="batch-metrics-breakdown">
+                            <div class="breakdown-card border-purple">
+                                <span class="lbl">Partnered Budget</span>
+                                <h3 id="batch-count-0">0</h3>
+                            </div>
+                            <div class="breakdown-card border-cyan">
+                                <span class="lbl">Partnered VIPs</span>
+                                <h3 id="batch-count-1">0</h3>
+                            </div>
+                            <div class="breakdown-card border-pink">
+                                <span class="lbl">Single Budget</span>
+                                <h3 id="batch-count-2">0</h3>
+                            </div>
+                            <div class="breakdown-card border-blue">
+                                <span class="lbl">Responsive VIPs</span>
+                                <h3 id="batch-count-3">0</h3>
+                            </div>
+                        </div>
+
+                        <div class="table-container">
+                            <table class="data-table" id="batch-results-table">
+                                <thead>
+                                    <tr>
+                                        <th>Customer ID</th>
+                                        <th>Age</th>
+                                        <th>Income</th>
+                                        <th>Education</th>
+                                        <th>Household</th>
+                                        <th>Recency</th>
+                                        <th>Segment</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Rendered dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW 5: MODEL & PIPELINE -->
+            <section id="tab-settings" class="tab-view">
+                <div class="settings-grid-layout">
+                    <div class="glass-card">
+                        <div class="card-header border-bottom">
+                            <h3><i class="fa-solid fa-microchip"></i> Unsupervised Pipeline Overview</h3>
+                            <p>Details about the feature engineering and ML training stages</p>
+                        </div>
+                        <div class="card-body padding">
+                            <div class="pipeline-steps">
+                                <div class="p-step">
+                                    <div class="step-num">1</div>
+                                    <div class="step-details">
+                                        <h4>Data Imputation & Cleaning</h4>
+                                        <p>Fills missing <code>Income</code> records using dataset median. Drops age and income outliers to prevent cluster skewness (Age &lt; 90, Income &lt; $600,000).</p>
+                                    </div>
+                                </div>
+                                <div class="p-step">
+                                    <div class="step-num">2</div>
+                                    <div class="step-details">
+                                        <h4>Feature Engineering</h4>
+                                        <p>Derives customer age, sign-up tenure in days, total children, and consolidates all product category expenditures into a unified <code>Total_Spending</code> metric.</p>
+                                    </div>
+                                </div>
+                                <div class="p-step">
+                                    <div class="step-num">3</div>
+                                    <div class="step-details">
+                                        <h4>Categorical Encoding & Scaling</h4>
+                                        <p>One-hot encodes simplified <code>Education</code> and <code>Living_With</code> features. Normalizes numerical features via <code>StandardScaler</code>.</p>
+                                    </div>
+                                </div>
+                                <div class="p-step">
+                                    <div class="step-num">4</div>
+                                    <div class="step-details">
+                                        <h4>Principal Component Analysis (PCA)</h4>
+                                        <p>Reduces 18-dimensional features to 3 orthogonal Principal Components, preserving variance and optimizing spatial distance calculations.</p>
+                                    </div>
+                                </div>
+                                <div class="p-step">
+                                    <div class="step-num">5</div>
+                                    <div class="step-details">
+                                        <h4>Agglomerative Clustering & KNN Classifier</h4>
+                                        <p>Trains Agglomerative Hierarchical clustering to isolate 4 customer profiles. Adapts a 1-Nearest Neighbors Classifier to assign cluster segments to new inputs instantly.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card">
+                        <div class="card-header border-bottom">
+                            <h3><i class="fa-solid fa-arrows-spin"></i> Model Controls & Retraining</h3>
+                            <p>Retrain models directly on the primary dataset</p>
+                        </div>
+                        <div class="card-body padding">
+                            <div class="retrain-info">
+                                <div class="meta-field">
+                                    <span class="lbl">Primary Dataset:</span>
+                                    <span class="val"><code>data/smartcart_customers.csv</code></span>
+                                </div>
+                                <div class="meta-field">
+                                    <span class="lbl">Cluster Algorithm:</span>
+                                    <span class="val">Agglomerative Hierarchical Clustering</span>
+                                </div>
+                                <div class="meta-field">
+                                    <span class="lbl">Model Cluster Count (k):</span>
+                                    <span class="val">4 (Optimal elbow score)</span>
+                                </div>
+                                <div class="meta-field">
+                                    <span class="lbl">Model Path:</span>
+                                    <span class="val"><code>models/</code></span>
+                                </div>
+                            </div>
+                            
+                            <hr class="card-divider">
+                            
+                            <div class="retrain-actions">
+                                <h4> retrain the model pipeline</h4>
+                                <p class="warning-text"><i class="fa-solid fa-triangle-exclamation"></i> Retraining will overwrite the existing saved components (Scaler, PCA, KNN, OHE) with fit values calculated from the latest CSV file.</p>
+                                <button class="btn btn-primary" id="retrain-pipeline-btn">
+                                    <i class="fa-solid fa-arrows-rotate"></i> Retrain Model Pipeline
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <!-- Custom JS script -->
+    <script src="/js/app.js"></script>
+</body>
+</html>
