@@ -1329,3 +1329,156 @@ body {
 .padding {
     padding: 24px;
 }
+
+/* ==========================================
+   Responsive Overrides for Mobile & Tablet
+   ========================================== */
+
+@media (max-width: 991px) {
+    .stats-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    .profiler-layout-grid,
+    .settings-grid-layout,
+    .detail-body-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .app-container {
+        flex-direction: column;
+        height: auto;
+        min-height: 100vh;
+        overflow-y: auto;
+    }
+
+    .sidebar {
+        width: 100%;
+        height: auto;
+        padding: 20px 15px;
+        border-right: none;
+        border-bottom: 1px solid var(--glass-border);
+    }
+
+    .sidebar-brand {
+        margin-bottom: 15px;
+        justify-content: center;
+    }
+
+    .sidebar-nav {
+        flex-direction: row;
+        overflow-x: auto;
+        padding-bottom: 8px;
+        gap: 8px;
+        scroll-behavior: smooth;
+        scrollbar-width: none; /* Hide scrollbar for Firefox */
+    }
+
+    .sidebar-nav::-webkit-scrollbar {
+        display: none; /* Hide scrollbar for Chrome/Safari */
+    }
+
+    .nav-item {
+        padding: 10px 14px;
+        font-size: 13px;
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
+
+    .sidebar-footer {
+        display: none; /* Hide user profile on mobile to save vertical space */
+    }
+
+    .main-content {
+        padding: 20px 15px;
+        height: auto;
+        overflow-y: visible;
+    }
+
+    .main-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+
+    .header-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .stat-card {
+        padding: 15px;
+        gap: 12px;
+    }
+
+    .stat-info h2 {
+        font-size: 20px;
+    }
+
+    .plot-body-3d {
+        min-height: 350px;
+    }
+
+    .form-row {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .flex-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .batch-metrics-breakdown {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .upload-dropzone {
+        padding: 35px 15px;
+    }
+
+    .explorer-detail-container {
+        padding: 20px 15px;
+    }
+
+    .detail-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .detail-header .badge {
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .batch-metrics-breakdown {
+        grid-template-columns: 1fr;
+    }
+
+    .detail-icon-badge {
+        width: 50px;
+        height: 50px;
+        font-size: 24px;
+    }
+
+    .btn {
+        padding: 10px 15px;
+        font-size: 13px;
+    }
+}
