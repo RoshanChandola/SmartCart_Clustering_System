@@ -63,6 +63,12 @@ document.addEventListener("DOMContentLoaded", () => {
     // DOM Elements - Retrain Controls
     const retrainBtn = document.getElementById("retrain-pipeline-btn");
     const quickRetrainBtn = document.getElementById("quick-retrain-btn");
+    
+    // DOM Elements - Mobile Navigation Toggle Elements
+    const mobileHamburger = document.getElementById("mobile-hamburger");
+    const sidebarCloseBtn = document.getElementById("sidebar-close-btn");
+    const sidebarOverlay = document.getElementById("sidebar-overlay");
+    const sidebar = document.querySelector(".sidebar");
 
     // Chart.js Chart Instances
     let distributionChart = null;
@@ -96,6 +102,33 @@ document.addEventListener("DOMContentLoaded", () => {
             maximumFractionDigits: 0
         }).format(val);
     };
+
+    /* ==========================================
+       Mobile Navigation Sidebar Drawer Toggling
+       ========================================== */
+    const openMobileSidebar = () => {
+        if (sidebar && sidebarOverlay) {
+            sidebar.classList.add("open");
+            sidebarOverlay.classList.add("active");
+        }
+    };
+
+    const closeMobileSidebar = () => {
+        if (sidebar && sidebarOverlay) {
+            sidebar.classList.remove("open");
+            sidebarOverlay.classList.remove("active");
+        }
+    };
+
+    if (mobileHamburger) {
+        mobileHamburger.addEventListener("click", openMobileSidebar);
+    }
+    if (sidebarCloseBtn) {
+        sidebarCloseBtn.addEventListener("click", closeMobileSidebar);
+    }
+    if (sidebarOverlay) {
+        sidebarOverlay.addEventListener("click", closeMobileSidebar);
+    }
 
     /* ==========================================
        Tab Switching Logic
@@ -139,6 +172,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     pageSubtitle.textContent = "Inspect machine learning components and retrain options";
                     break;
             }
+
+            // Close mobile sidebar on navigation click
+            closeMobileSidebar();
         });
     });
 

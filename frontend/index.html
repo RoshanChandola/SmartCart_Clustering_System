@@ -17,8 +17,22 @@
 </head>
 <body>
     <div class="app-container">
+        <!-- Mobile Top Header -->
+        <div class="mobile-top-bar">
+            <div class="mobile-brand">
+                <i class="fa-solid fa-cart-shopping brand-icon"></i>
+                <h2>Smart<span>Cart</span></h2>
+            </div>
+            <button id="mobile-hamburger" class="mobile-hamburger-btn" aria-label="Open Menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+
         <!-- Sidebar Navigation -->
         <aside class="sidebar">
+            <button class="sidebar-close-btn" id="sidebar-close-btn" aria-label="Close Menu">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
             <div class="sidebar-brand">
                 <i class="fa-solid fa-cart-shopping brand-icon"></i>
                 <h2>Smart<span>Cart</span></h2>
@@ -682,6 +696,9 @@
             </section>
         </main>
     </div>
+    
+    <!-- Sidebar Overlay for mobile -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
     
     <!-- Custom JS script -->
     <script src="/js/app.js"></script>
